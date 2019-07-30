@@ -1,24 +1,24 @@
 /*
 Autor: Guilherme Buzana Junior
 Data: 02/06/2017
-Vers„o: 0.0.7
+Vers√£o: 0.0.7
 Procedure MAN_IDX.
 
-EspecificaÁıes :
+Especifica√ß√µes :
 
-@BASE Especifica se a manutenÁ„o ocorrer· para todas as bases de dados ou uma base de dados especÌfica.
+@BASE Especifica se a manuten√ß√£o ocorrer√° para todas as bases de dados ou uma base de dados espec√≠fica.
 
-@DIF_MIN Janela de manutenÁ„o em minutos a partir do momento de execuÁ„o da procedure.
-Definir a quantidade de minutos que a procedure deve permanecer em execuÁ„o definindo 
-assim sua janela de manutenÁ„o.
+@DIF_MIN Janela de manuten√ß√£o em minutos a partir do momento de execu√ß√£o da procedure.
+Definir a quantidade de minutos que a procedure deve permanecer em execu√ß√£o definindo 
+assim sua janela de manuten√ß√£o.
 
-@MED_FRAG Percentual de fragmentaÁ„o que o Ìndice deve ter para ter manutenÁ„o.
-Qualquer Ìndice que tiver fragmentaÁ„o igual ou superior a especificada receber· manutenÁ„o.
+@MED_FRAG Percentual de fragmenta√ß√£o que o √≠ndice deve ter para ter manuten√ß√£o.
+Qualquer √≠ndice que tiver fragmenta√ß√£o igual ou superior a especificada receber√° manuten√ß√£o.
 
-@TIP_MAN Tipo de manutenÁ„o dos Ìndices, caso o valor seja 0 = REORGANIZA, 1 = REBUILD
+@TIP_MAN Tipo de manuten√ß√£o dos √≠ndices, caso o valor seja 0 = REORGANIZA, 1 = REBUILD
 
 ---- Requisitos.
--- Tabela para registro dos objetos que tiveram manutenÁ„o.
+-- Tabela para registro dos objetos que tiveram manuten√ß√£o.
 use master
 go
 create table SER_IDX_HIST(
@@ -34,27 +34,27 @@ error_number int,
 Data datetime,
 error_message varchar(600))
 
--- An·lise dos dados retornados.
+-- An√°lise dos dados retornados.
 select * from SER_IDX_HIST order by [data] desc
--- ExecuÁ„o.
+-- Execu√ß√£o.
 exec MAN_IDX @BASE='todas',@DIF_MIN=60,@MED_FRAG=25,@TIP_MAN=1,@DOP=0,@STATS=1
 ----------------------------------------------------------------------
 ChangeLog
 0.0.3
-Implementado Rebuild de Ìndices na rotina.
-@TIP_MAN=1 onde 0 = REORGANIZA, 1 = REBUILD dos Ìndices.
+Implementado Rebuild de √≠ndices na rotina.
+@TIP_MAN=1 onde 0 = REORGANIZA, 1 = REBUILD dos √≠ndices.
 Implementado registro de menssagens de erro.
 0.0.4
 Implementado MAXDOP.
-User @dop=0 para autom·tico ou definir quantos processadores usar.
+User @dop=0 para autom√°tico ou definir quantos processadores usar.
 0.0.5
 Implementado @STATS=0
-Se parametrizado =1 atualiza as estatÌsticas ligadas ao Ìndice em quest„o.
-Padr„o SQL Server =0
+Se parametrizado =1 atualiza as estat√≠sticas ligadas ao √≠ndice em quest√£o.
+Padr√£o SQL Server =0
 0.0.6
 Aumentado comprimento dos campos de nome de objetos e comando.
 0.0.7 
-Corrigido especificaÁ„o de schemas.
+Corrigido especifica√ß√£o de schemas.
 
 */
 use master
@@ -95,7 +95,7 @@ end
 --@MED_FRAG INT,
 --@DIF_MIN INT
 
--- Definindo janela de manutenÁ„o
+-- Definindo janela de manuten√ß√£o
 select  @HORA_INICIO= GETDATE()
 -- Define comprimento da janela.
 --select @DIF_MIN=4
@@ -108,7 +108,7 @@ if @TIP_MAN = 1
 set @TIP_MAN_TEXT=' REBUILD WITH (MAXDOP='+convert(varchar(2),@DOP)+',STATISTICS_NORECOMPUTE='+@STATS_DESC+')'
 
 
--------------------------------- ManutenÁ„o pata todas as bases de dados ------------------------
+-------------------------------- Manuten√ß√£o pata todas as bases de dados ------------------------
 IF @BASE LIKE 'TODAS'
     BEGIn
 
@@ -130,7 +130,7 @@ FETCH next FROM man_cursor INTO @DATABASE_ID, @DATABASE_NAME
 
 WHILE @@FETCH_STATUS = 0 
   BEGIN 
---------------------------------- InÌcio do tratamento de Ìndices
+--------------------------------- In√≠cio do tratamento de √≠ndices
 SELECT @COMANDO = N'SELECT sche.name+''.''+''[''+obj.name+'']'' tb_name,''[''+b.name+'']'' idx_name,a.avg_fragmentation_in_percent
 into ##table_idx FROM '+@DATABASE_NAME+'.sys.dm_db_index_physical_stats (' 
 + CONVERT(VARCHAR(4), @DATABASE_ID) 
@@ -154,7 +154,7 @@ FETCH NEXT FROM MAN_IDX INTO @TABLE_NAME,@IDX_NAME,@Frag
 
 WHILE @@FETCH_STATUS = 0 
   BEGIN 
-	-- Controle de execuÁ„o da rotina em hor·rio prÛprio
+	-- Controle de execu√ß√£o da rotina em hor√°rio pr√≥prio
 	IF DATEDIFF(MINUTE,@HORA_INICIO,GETDATE()) <= @DIF_MIN
 	BEGIN
 	begin try
@@ -183,7 +183,7 @@ DEALLOCATE man_cursor
 set nocount off
 end
 -- Fim do IF para @BASE='TODAS'
--------------------------------- ManutenÁ„o em base de dados especÌfica ------------------------
+-------------------------------- Manuten√ß√£o em base de dados espec√≠fica ------------------------
   IF @BASE <> 'todas'
     BEGIN
         SET @DATABASE_NAME=@BASE
@@ -206,7 +206,7 @@ FETCH next FROM man_cursor INTO @DATABASE_ID, @DATABASE_NAME
 
 WHILE @@FETCH_STATUS = 0 
   BEGIN 
---------------------------------- InÌcio do tratamento de Ìndices
+--------------------------------- In√≠cio do tratamento de √≠ndices
 SELECT @COMANDO = N'SELECT sche.name+''.''+''[''+obj.name+'']'' tb_name,''[''+b.name+'']'' idx_name,a.avg_fragmentation_in_percent
 into ##table_idx FROM '+@DATABASE_NAME+'.sys.dm_db_index_physical_stats (' 
 + CONVERT(VARCHAR(4), @DATABASE_ID) 
@@ -229,7 +229,7 @@ FETCH NEXT FROM MAN_IDX INTO @TABLE_NAME,@IDX_NAME,@Frag
 
 WHILE @@FETCH_STATUS = 0 
   BEGIN 
-	-- Controle de execuÁ„o da rotina em hor·rio prÛprio
+	-- Controle de execu√ß√£o da rotina em hor√°rio pr√≥prio
 	IF DATEDIFF(MINUTE,@HORA_INICIO,GETDATE()) <= @DIF_MIN
 	BEGIN
 	begin try
@@ -261,8 +261,8 @@ end
 
   ELSE
           BEGIN
-              PRINT 'Base de dados ou opÁ„o n„o existe ! 
-Use @BASE=''todas'' para manutenÁ„o em todas as bases de dados ou @BASE=''nomebase'' para uma base especÌfica.'
+              PRINT 'Base de dados ou op√ß√£o n√£o existe ! 
+Use @BASE=''todas'' para manuten√ß√£o em todas as bases de dados ou @BASE=''nomebase'' para uma base espec√≠fica.'
           END
 -- Fim da 
 end
